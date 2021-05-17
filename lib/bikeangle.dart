@@ -4,16 +4,23 @@ import 'dart:async';
 
 import 'package:bikeangle/device_rotation.dart';
 import 'package:bikeangle/gyro_data.dart';
+import 'package:bikeangle/services/database.dart';
 import 'package:sensors/sensors.dart';
 
 /// Bike Angle Library
 class BikeAngle {
 
+  /// Singleton instance
   static final BikeAngle _instance = BikeAngle._init();
-
   factory BikeAngle() => _instance;
 
-  BikeAngle._init();
+  /// Database
+  DatabaseService _database;
+
+  BikeAngle._init() {
+    _database = DatabaseService();
+    _database.initialize();
+  }
 
   /// Listen to device rotation
   Stream<DeviceRotation> listenToDeviceRotationEvents() {
