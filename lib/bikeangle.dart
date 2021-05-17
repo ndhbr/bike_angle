@@ -8,6 +8,13 @@ import 'package:sensors/sensors.dart';
 
 /// Bike Angle Library
 class BikeAngle {
+
+  static final BikeAngle _instance = BikeAngle._init();
+
+  factory BikeAngle() => _instance;
+
+  BikeAngle._init();
+
   /// Listen to device rotation
   Stream<DeviceRotation> listenToDeviceRotationEvents() {
     return listenToAccelerometerEvents()
