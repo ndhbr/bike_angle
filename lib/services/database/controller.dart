@@ -92,7 +92,7 @@ class Controller {
 
   Future<List<Recording>> getRecordings({int startAfter}) async {
     List<Map<String, Object>> rawData =
-        await _database.query(Tables.recordings, limit: 6);
+        await _database.query(Tables.recordings, limit: 32);
     List<Recording> recordings =
         rawData.map((e) => Recording.fromDatabase(e)).toList();
 

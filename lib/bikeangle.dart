@@ -106,6 +106,10 @@ class BikeAngle {
     _recordingId = null;
   }
 
+  bool isRecording() {
+    return _recordingId != null;
+  }
+
   Future<List<Recording>> getRecordings({int startAfter}) async {
     return _database.getRecordings(startAfter: startAfter);
   }
