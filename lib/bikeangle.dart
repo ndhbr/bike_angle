@@ -7,6 +7,7 @@ import 'package:bikeangle/models/gyro_data.dart';
 import 'package:bikeangle/models/recording.dart';
 import 'package:sensors/sensors.dart';
 import 'package:bikeangle/services/database/controller.dart' as DatabaseService;
+import 'package:sqflite/sqflite.dart';
 
 /// Bike Angle Library
 class BikeAngle {
@@ -24,14 +25,16 @@ class BikeAngle {
   /// Stream
   StreamSubscription _gyroscopeStream;
   StreamController<DeviceRotation> _interpolatedGyroscopeStream;
-  List<DeviceRotation> _lastValues;
+  DeviceRotation a, b, c;
 
   /// Recording
   int _recordingId;
+  Batch _batch;
 
   /// State
   bool _isInitialized;
   bool _debug;
+  List<DeviceRotation> _lastValues;
 
   BikeAngle._init() {
     _isInitialized = false;
@@ -39,51 +42,109 @@ class BikeAngle {
     _database.initialize().then((value) => _isInitialized = value);
   }
 
+  /// Retrieves initialization state of the bike angle library
   bool get initialized => _isInitialized;
 
+  /// Starts and returns a bike angle stream with device rotations
   Future<Stream<DeviceRotation>> getBikeAngle() async {
     _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
+    double medianPitch, medianRoll, avgPitch, avgRoll;
 
-    _lastValues = [];
-
-    _gyroscopeStream = accelerometerEvents
+    return accelerometerEvents
         .map((event) => GyroData.fromAccelerometerEvent(event))
         .map((event) => DeviceRotation.fromGyroData(event))
-        .listen((event) async {
-      _lastValues.add(event);
+        .map(
+      (event) {
+        if (a == null || b == null || c == null) {
+          a = event;
+          b = event;
+          c = event;
+        } else {
+          a = b;
+          b = c;
+          c = event;
+        }
 
-      if (_lastValues.length > 3) {
-        _lastValues.removeAt(0);
-      }
-
-      // interpolation
-      if (_lastValues.length == 3) {
+        // interpolation
         // median
-        double medianPitch = _median(_lastValues.map((e) => e.pitch).toList());
-        double medianRoll = _median(_lastValues.map((e) => e.roll).toList());
+        medianPitch = _median([a, b, c].map((e) => e.pitch).toList());
+        medianRoll = _median([a, b, c].map((e) => e.roll).toList());
 
-        _lastValues[1] =
-            DeviceRotation(medianPitch, medianRoll, _lastValues[1].capturedAt);
+        b.pitch = medianPitch;
+        b.roll = medianRoll;
 
         // average
-        double avgPitch = _average(_lastValues.map((e) => e.pitch).toList());
-        double avgRoll = _average(_lastValues.map((e) => e.roll).toList());
+        avgPitch = _average([a, b, c].map((e) => e.pitch).toList());
+        avgRoll = _average([a, b, c].map((e) => e.roll).toList());
 
-        _lastValues[1] =
-            DeviceRotation(avgPitch, avgRoll, _lastValues[1].capturedAt);
+        b.pitch = avgPitch;
+        b.roll = avgRoll;
 
-        // send
-        _interpolatedGyroscopeStream.add(_lastValues[1]);
-
-        if (_recordingId != null && _recordingId > 0) {
-          await _database.insertDeviceRotation(_recordingId, _lastValues[1]);
+        if (_batch != null && _recordingId != null && _recordingId > 0) {
+          _database.insertDeviceRotation(
+            _recordingId,
+            b,
+            batch: _batch,
+          );
         }
-      }
-    });
 
-    return _interpolatedGyroscopeStream.stream;
+        return b;
+      },
+    );
   }
 
+  // /// Starts and returns a bike angle stream with device rotations
+  // Future<Stream<DeviceRotation>> getBikeAngle() async {
+  //   _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
+
+  //   _lastValues = [];
+
+  //   _gyroscopeStream = accelerometerEvents
+  //       .map((event) => GyroData.fromAccelerometerEvent(event))
+  //       .map((event) => DeviceRotation.fromGyroData(event))
+  //       .listen(
+  //     (event) async {
+  //       _lastValues.add(event);
+
+  //       if (_lastValues.length > 3) {
+  //         _lastValues.removeAt(0);
+  //       }
+
+  //       // interpolation
+  //       if (_lastValues.length == 3) {
+  //         // median
+  //         double medianPitch =
+  //             _median(_lastValues.map((e) => e.pitch).toList());
+  //         double medianRoll = _median(_lastValues.map((e) => e.roll).toList());
+
+  //         _lastValues[1] = DeviceRotation(
+  //             medianPitch, medianRoll, _lastValues[1].capturedAt);
+
+  //         // average
+  //         double avgPitch = _average(_lastValues.map((e) => e.pitch).toList());
+  //         double avgRoll = _average(_lastValues.map((e) => e.roll).toList());
+
+  //         _lastValues[1] =
+  //             DeviceRotation(avgPitch, avgRoll, _lastValues[1].capturedAt, x: _lastValues[1].x, y: _lastValues[1].y, z: _lastValues[1].z);
+
+  //         // send
+  //         _interpolatedGyroscopeStream.add(_lastValues[1]);
+
+  //         if (_batch != null && _recordingId != null && _recordingId > 0) {
+  //           await _database.insertDeviceRotation(
+  //             _recordingId,
+  //             _lastValues[1],
+  //             batch: _batch,
+  //           );
+  //         }
+  //       }
+  //     },
+  //   );
+
+  //   return _interpolatedGyroscopeStream.stream;
+  // }
+
+  /// Stops the started bike angle stream
   Future<void> stopBikeAngleStream() async {
     if (_gyroscopeStream != null) {
       await _gyroscopeStream.cancel();
@@ -96,13 +157,22 @@ class BikeAngle {
     }
   }
 
+  /// Starts recording of the bike angle stream (only working, if the stream is active)
   Future<void> startRecording() async {
     _recordingId = await _database.startRecording();
+    _batch = _database.batch();
+
     debugPrint('[BIKE_ANGLE] Started recording with ID: $_recordingId');
   }
 
-  void stopRecording() {
+  Future<void> stopRecording() async {
+    if (_batch != null) {
+      await _batch.commit(noResult: true);
+    }
+    await _database.stopRecording(_recordingId);
+
     debugPrint('[BIKE_ANGLE] Stopped recording with ID: $_recordingId');
+
     _recordingId = null;
   }
 

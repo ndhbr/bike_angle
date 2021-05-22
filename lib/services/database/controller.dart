@@ -34,10 +34,6 @@ class Controller {
     );
 
     return true;
-    // Debug: Clear whole db
-    // await dropDatabase();
-    // await _database.execute(Queries.createRecordingsTable);
-    // await _database.execute(Queries.createDeviceRotationsTable);
   }
 
   /// Drop both tables -> clear/drop database
@@ -69,16 +65,18 @@ class Controller {
       throw 'Database not initialized';
     }
 
-    int changes = await _database.update(Tables.recordings, {
-      Columns.re_stopped_recording: DateTime.now().millisecondsSinceEpoch,
-    });
+    int changes = await _database.update(
+      Tables.recordings,
+      {Columns.re_stopped_recording: DateTime.now().millisecondsSinceEpoch},
+      where: '${Columns.re_id} = $recordingId',
+    );
 
     return changes;
   }
 
   /// Insert device rotation to existing recording
-  Future<void> insertDeviceRotation(
-      int recordingId, DeviceRotation rotation) async {
+  Future<void> insertDeviceRotation(int recordingId, DeviceRotation rotation,
+      {Batch batch}) async {
     if (_database == null) {
       throw 'Database not initialized';
     }
@@ -87,9 +85,14 @@ class Controller {
 
     insertData.addAll({Columns.dr_recording_id: recordingId});
 
-    await _database.insert(Tables.deviceRotations, insertData);
+    if (batch != null) {
+      batch.insert(Tables.deviceRotations, insertData);
+    } else {
+      await _database.insert(Tables.deviceRotations, insertData);
+    }
   }
 
+  /// Retrieves a paginated list of recordings
   Future<List<Recording>> getRecordings({int startAfter}) async {
     List<Map<String, Object>> rawData =
         await _database.query(Tables.recordings, limit: 32);
@@ -99,6 +102,7 @@ class Controller {
     return recordings;
   }
 
+  /// Retrieves a list of all recorded bike angles of the recording
   Future<List<DeviceRotation>> getRecordedAngles(int recordingId) async {
     List<Map<String, Object>> rawData = await _database.query(
       Tables.deviceRotations,
@@ -109,5 +113,16 @@ class Controller {
         rawData.map((e) => DeviceRotation.fromDatabase(e)).toList();
 
     return deviceRotations;
+  }
+
+  /// Removed recording from database
+  Future<void> removeRecording(int recordingId) async {
+    return await _database.delete(Tables.recordings,
+        where: '${Columns.re_id} = $recordingId');
+  }
+
+  /// Return a new batch instance
+  Batch batch() {
+    return _database.batch();
   }
 }

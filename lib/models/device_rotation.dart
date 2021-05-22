@@ -4,11 +4,61 @@ import 'package:bikeangle/models/gyro_data.dart';
 import 'package:bikeangle/services/database/controller.dart';
 
 class DeviceRotation {
-  final double pitch;
-  final double roll;
-  final int capturedAt;
+  double pitch;
+  double roll;
+  double x;
+  double y;
+  double z;
+  int capturedAt;
 
-  DeviceRotation(this.pitch, this.roll, this.capturedAt);
+  DeviceRotation(this.pitch, this.roll, this.capturedAt,
+      {this.x, this.y, this.z});
+
+  /// Calculates exact bike angle
+  double get bikeAngle {
+    double rollRad = roll * pi / 180;
+    double pitchRad = roll * pi / 180;
+    double tilt = sqrt(pow(rollRad, 2) + pow(pitchRad, 2));
+
+    return tilt * 180 / pi;
+  }
+
+  double get bikeAngle5 {
+    double rollRad = roll * pi / 180;
+    double pitchRad = roll * pi / 180;
+    double tilt = atan(sqrt(pow(tan(rollRad), 2) + pow(tan(pitchRad), 2)));
+
+    return tilt * 180 / pi;
+  }
+
+  double get bikeAngle2 {
+    double inner = x / sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+    double tilt = atan(inner);
+    return tilt * 180 / pi;
+  }
+
+  double get bikeAngle3 {
+    double zaehler = sqrt(pow(x, 2) + pow(y, 2));
+    double nenner = z;
+    double tilt = atan(zaehler / nenner);
+
+    // double roll = atan(x / (sqrt(pow(y, 2) + pow(z, 2))));
+    // double pitch = atan(y / (sqrt(pow(x, 2) + pow(z, 2))));
+
+    return tilt * 180 / pi;
+  }
+
+  double get bikeAngle4 {
+    double tilt = tan(-x / (sqrt(pow(y, 2) + pow(x, 2))));
+
+    return tilt * 180 / pi;
+  }
+
+  double get bikeAngle6 {
+    double tilt = atan(x/y);
+
+    return tilt * 180 / pi;
+  }
 
   /// Generates device rotation object by GyroData
   factory DeviceRotation.fromGyroData(GyroData gyroData) {
@@ -17,7 +67,12 @@ class DeviceRotation {
     // rotation on X axis
     double roll = atan2(-gyroData.y, gyroData.z) * 180 / pi;
 
-    return DeviceRotation(pitch, roll, DateTime.now().millisecondsSinceEpoch);
+    double x = gyroData.x;
+    double y = gyroData.y;
+    double z = gyroData.z;
+
+    return DeviceRotation(pitch, roll, DateTime.now().millisecondsSinceEpoch,
+        x: x, y: y, z: z);
   }
 
   factory DeviceRotation.fromDatabase(Map<String, Object> data) {
