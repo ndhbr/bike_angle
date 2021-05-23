@@ -15,8 +15,9 @@ class Queries {
     CREATE TABLE ${Tables.deviceRotations}(
         ${Columns.dr_id} INTEGER PRIMARY KEY AUTOINCREMENT,
         ${Columns.dr_recording_id} INTEGER,
-        ${Columns.dr_pitch} INTEGER,
-        ${Columns.dr_roll} INTEGER,
+        ${Columns.dr_x} INTEGER,
+        ${Columns.dr_y} INTEGER,
+        ${Columns.dr_z} INTEGER,
         ${Columns.dr_captured_at} INTEGER,
         FOREIGN KEY(${Columns.dr_recording_id}) REFERENCES ${Tables.recordings}(${Columns.re_id})
     );

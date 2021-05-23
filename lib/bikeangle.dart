@@ -34,7 +34,6 @@ class BikeAngle {
   /// State
   bool _isInitialized;
   bool _debug;
-  List<DeviceRotation> _lastValues;
 
   BikeAngle._init() {
     _isInitialized = false;
@@ -48,7 +47,7 @@ class BikeAngle {
   /// Starts and returns a bike angle stream with device rotations
   Future<Stream<DeviceRotation>> getBikeAngle() async {
     _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
-    double medianPitch, medianRoll, avgPitch, avgRoll;
+    double medianX, medianY, medianZ, avgX, avgY, avgZ;
 
     return accelerometerEvents
         .map((event) => GyroData.fromAccelerometerEvent(event))
@@ -67,18 +66,22 @@ class BikeAngle {
 
         // interpolation
         // median
-        medianPitch = _median([a, b, c].map((e) => e.pitch).toList());
-        medianRoll = _median([a, b, c].map((e) => e.roll).toList());
+        medianX = _median([a, b, c].map((e) => e.x).toList());
+        medianY = _median([a, b, c].map((e) => e.y).toList());
+        medianZ = _median([a, b, c].map((e) => e.z).toList());
 
-        b.pitch = medianPitch;
-        b.roll = medianRoll;
+        b.x = medianX;
+        b.y = medianY;
+        b.z = medianZ;
 
         // average
-        avgPitch = _average([a, b, c].map((e) => e.pitch).toList());
-        avgRoll = _average([a, b, c].map((e) => e.roll).toList());
+        avgX = _average([a, b, c].map((e) => e.x).toList());
+        avgY = _average([a, b, c].map((e) => e.y).toList());
+        avgZ = _average([a, b, c].map((e) => e.z).toList());
 
-        b.pitch = avgPitch;
-        b.roll = avgRoll;
+        b.x = avgX;
+        b.y = avgY;
+        b.z = avgZ;
 
         if (_batch != null && _recordingId != null && _recordingId > 0) {
           _database.insertDeviceRotation(

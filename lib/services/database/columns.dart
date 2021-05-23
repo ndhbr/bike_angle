@@ -9,7 +9,8 @@ class Columns {
   /// Device Rotation Table
   static const String dr_id = 'id';
   static const String dr_recording_id = 'recording_id';
-  static const String dr_pitch = 'pitch';
-  static const String dr_roll = 'roll';
+  static const String dr_x = 'x';
+  static const String dr_y = 'y';
+  static const String dr_z = 'z';
   static const String dr_captured_at = 'captured_at';
 }
