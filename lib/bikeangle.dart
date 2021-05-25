@@ -49,11 +49,13 @@ class BikeAngle {
     _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
     double medianX, medianY, medianZ, avgX, avgY, avgZ;
 
-    return accelerometerEvents
+    _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
+
+    _gyroscopeStream = accelerometerEvents
         .map((event) => GyroData.fromAccelerometerEvent(event))
         .map((event) => DeviceRotation.fromGyroData(event))
-        .map(
-      (event) {
+        .listen(
+      (event) async {
         if (a == null || b == null || c == null) {
           a = event;
           b = event;
@@ -91,9 +93,30 @@ class BikeAngle {
           );
         }
 
-        return b;
+        // return b;
+        _interpolatedGyroscopeStream.add(b);
+
+        int timeDifference = c.capturedAt - b.capturedAt;
+        int part = (timeDifference / 6).round();
+        int i;
+        double accPart;
+
+        for (i = 1; i <= 2; i++) {
+          await Future.delayed(Duration(milliseconds: part * i));
+
+          accPart = (part / timeDifference) * i;
+
+          _interpolatedGyroscopeStream.add(DeviceRotation(
+            b.capturedAt + part,
+            x: b.x + ((c.x - b.x) * accPart),
+            y: b.y + ((c.y - b.y) * accPart),
+            z: b.z + ((c.z - b.z) * accPart),
+          ));
+        }
       },
     );
+
+    return _interpolatedGyroscopeStream.stream;
   }
 
   // /// Starts and returns a bike angle stream with device rotations
