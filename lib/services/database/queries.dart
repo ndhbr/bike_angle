@@ -5,6 +5,7 @@ class Queries {
     -- Recordings tables
      CREATE TABLE ${Tables.recordings}(
         ${Columns.re_id} INTEGER PRIMARY KEY AUTOINCREMENT,
+        ${Columns.re_title} TEXT,
         ${Columns.re_started_recording} INTEGER,
         ${Columns.re_stopped_recording} INTEGER
     );
@@ -19,7 +20,7 @@ class Queries {
         ${Columns.dr_y} INTEGER,
         ${Columns.dr_z} INTEGER,
         ${Columns.dr_captured_at} INTEGER,
-        FOREIGN KEY(${Columns.dr_recording_id}) REFERENCES ${Tables.recordings}(${Columns.re_id})
+        FOREIGN KEY(${Columns.dr_recording_id}) REFERENCES ${Tables.recordings}(${Columns.re_id}) ON DELETE CASCADE
     );
   ''';
 

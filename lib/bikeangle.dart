@@ -1,6 +1,7 @@
 library bikeangle;
 
 import 'dart:async';
+import 'package:async/async.dart';
 
 import 'package:bikeangle/models/device_rotation.dart';
 import 'package:bikeangle/models/gyro_data.dart';
@@ -18,6 +19,10 @@ class BikeAngle {
 
     return _instance;
   }
+
+  /// Memoizer to prevent future builder to trigger the stream
+  /// more than once
+  final AsyncMemoizer _memoizer = AsyncMemoizer();
 
   /// Database
   DatabaseService.Controller _database;
@@ -46,77 +51,79 @@ class BikeAngle {
 
   /// Starts and returns a bike angle stream with device rotations
   Future<Stream<DeviceRotation>> getBikeAngle() async {
-    _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
-    double medianX, medianY, medianZ, avgX, avgY, avgZ;
+    return await this._memoizer.runOnce(() async {
+      _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
+      double medianX, medianY, medianZ, avgX, avgY, avgZ;
 
-    _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
+      _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
 
-    _gyroscopeStream = accelerometerEvents
-        .map((event) => GyroData.fromAccelerometerEvent(event))
-        .map((event) => DeviceRotation.fromGyroData(event))
-        .listen(
-      (event) async {
-        if (a == null || b == null || c == null) {
-          a = event;
-          b = event;
-          c = event;
-        } else {
-          a = b;
-          b = c;
-          c = event;
-        }
+      _gyroscopeStream = accelerometerEvents
+          .map((event) => GyroData.fromAccelerometerEvent(event))
+          .map((event) => DeviceRotation.fromGyroData(event))
+          .listen(
+        (event) async {
+          if (a == null || b == null || c == null) {
+            a = event;
+            b = event;
+            c = event;
+          } else {
+            a = b;
+            b = c;
+            c = event;
+          }
 
-        // interpolation
-        // median
-        medianX = _median([a, b, c].map((e) => e.x).toList());
-        medianY = _median([a, b, c].map((e) => e.y).toList());
-        medianZ = _median([a, b, c].map((e) => e.z).toList());
+          // interpolation
+          // median
+          medianX = _median([a, b, c].map((e) => e.x).toList());
+          medianY = _median([a, b, c].map((e) => e.y).toList());
+          medianZ = _median([a, b, c].map((e) => e.z).toList());
 
-        b.x = medianX;
-        b.y = medianY;
-        b.z = medianZ;
+          b.x = medianX;
+          b.y = medianY;
+          b.z = medianZ;
 
-        // average
-        avgX = _average([a, b, c].map((e) => e.x).toList());
-        avgY = _average([a, b, c].map((e) => e.y).toList());
-        avgZ = _average([a, b, c].map((e) => e.z).toList());
+          // average
+          avgX = _average([a, b, c].map((e) => e.x).toList());
+          avgY = _average([a, b, c].map((e) => e.y).toList());
+          avgZ = _average([a, b, c].map((e) => e.z).toList());
 
-        b.x = avgX;
-        b.y = avgY;
-        b.z = avgZ;
+          b.x = avgX;
+          b.y = avgY;
+          b.z = avgZ;
 
-        if (_batch != null && _recordingId != null && _recordingId > 0) {
-          _database.insertDeviceRotation(
-            _recordingId,
-            b,
-            batch: _batch,
-          );
-        }
+          if (_batch != null && _recordingId != null && _recordingId > 0) {
+            _database.insertDeviceRotation(
+              _recordingId,
+              b,
+              batch: _batch,
+            );
+          }
 
-        // return b;
-        _interpolatedGyroscopeStream.add(b);
+          // return b;
+          _interpolatedGyroscopeStream.add(b);
 
-        int timeDifference = c.capturedAt - b.capturedAt;
-        int part = (timeDifference / 6).round();
-        int i;
-        double accPart;
+          int timeDifference = c.capturedAt - b.capturedAt;
+          int part = (timeDifference / 6).round();
+          int i;
+          double accPart;
 
-        for (i = 1; i <= 2; i++) {
-          await Future.delayed(Duration(milliseconds: part * i));
+          for (i = 1; i <= 2; i++) {
+            await Future.delayed(Duration(milliseconds: part * i));
 
-          accPart = (part / timeDifference) * i;
+            accPart = (part / timeDifference) * i;
 
-          _interpolatedGyroscopeStream.add(DeviceRotation(
-            b.capturedAt + part,
-            x: b.x + ((c.x - b.x) * accPart),
-            y: b.y + ((c.y - b.y) * accPart),
-            z: b.z + ((c.z - b.z) * accPart),
-          ));
-        }
-      },
-    );
+            _interpolatedGyroscopeStream.add(DeviceRotation(
+              b.capturedAt + part,
+              x: b.x + ((c.x - b.x) * accPart),
+              y: b.y + ((c.y - b.y) * accPart),
+              z: b.z + ((c.z - b.z) * accPart),
+            ));
+          }
+        },
+      );
 
-    return _interpolatedGyroscopeStream.stream;
+      return _interpolatedGyroscopeStream.stream;
+    });
   }
 
   // /// Starts and returns a bike angle stream with device rotations
@@ -212,6 +219,16 @@ class BikeAngle {
 
   Future<List<DeviceRotation>> getRecordedAngles(int recordingId) async {
     return _database.getRecordedAngles(recordingId);
+  }
+
+  /// Set title of recording
+  Future<void> setRecordingTitle(int recordingId, String title) async {
+    return await _database.setRecordingTitle(recordingId, title);
+  }
+
+  /// Remove recording by recording id
+  Future<void> removeRecording(int recordingId) async {
+    return await _database.removeRecording(recordingId);
   }
 
   /// Calculates average value of list values

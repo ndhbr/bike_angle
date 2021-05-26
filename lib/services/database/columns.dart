@@ -3,6 +3,7 @@ part of database_service;
 class Columns {
   /// Recordings table
   static const String re_id = 'id';
+  static const String re_title = 'title';
   static const String re_started_recording = 'started_recording';
   static const String re_stopped_recording = 'stopped_recording';
 

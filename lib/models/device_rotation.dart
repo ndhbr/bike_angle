@@ -63,6 +63,13 @@ class DeviceRotation {
     return bikeAngleRad * 180 / pi;
   }
 
+  /// Calculates wether the recorded angle can be a correct one
+  bool get valid {
+    double pitch = atan(y / (sqrt(pow(x, 2) + pow(z, 2))));
+    
+    return (pitch >= 0.35 && pitch <= 0.9);
+  }
+
   /// Generates device rotation object by GyroData
   factory DeviceRotation.fromGyroData(GyroData gyroData) {
     double x = gyroData.x;

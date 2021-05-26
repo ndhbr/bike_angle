@@ -16,7 +16,7 @@ class Recording {
   factory Recording.fromDatabase(Map<String, Object> data) {
     return Recording(
       id: data[Columns.re_id] ?? 0,
-      title: 'Fahrt #${data[Columns.re_id] ?? 0}',
+      title: data[Columns.re_title] ?? 'Fahrt #${data[Columns.re_id] ?? 0}',
       startedRecordingTimestamp: data[Columns.re_started_recording] ?? 0,
       stoppedRecordingTimestamp: data[Columns.re_stopped_recording] ?? 0,
     );

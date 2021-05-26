@@ -30,6 +30,9 @@ class Controller {
         await db.execute(Queries.createRecordingsTable);
         await db.execute(Queries.createDeviceRotationsTable);
       },
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       version: 1,
     );
 
@@ -93,9 +96,13 @@ class Controller {
   }
 
   /// Retrieves a paginated list of recordings
+  /// TODO: implement pagination
   Future<List<Recording>> getRecordings({int startAfter}) async {
-    List<Map<String, Object>> rawData =
-        await _database.query(Tables.recordings, limit: 32);
+    List<Map<String, Object>> rawData = await _database.query(
+      Tables.recordings,
+      limit: 32,
+      orderBy: '${Columns.re_started_recording} DESC',
+    );
     List<Recording> recordings =
         rawData.map((e) => Recording.fromDatabase(e)).toList();
 
@@ -115,9 +122,15 @@ class Controller {
     return deviceRotations;
   }
 
-  /// Removed recording from database
+  /// Remove recording from database by recording id
   Future<void> removeRecording(int recordingId) async {
     return await _database.delete(Tables.recordings,
+        where: '${Columns.re_id} = $recordingId');
+  }
+
+  /// Set title of recording
+  Future<void> setRecordingTitle(int recordingId, String title) async {
+    return await _database.update(Tables.recordings, {Columns.re_title: title},
         where: '${Columns.re_id} = $recordingId');
   }
 
