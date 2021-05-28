@@ -10,6 +10,7 @@ part 'columns.dart';
 part 'queries.dart';
 
 const DB_NAME = 'bike_angle_database.db';
+const PAGINATION_LIMIT = 10;
 
 class Controller {
   /// Database instance
@@ -96,12 +97,14 @@ class Controller {
   }
 
   /// Retrieves a paginated list of recordings
-  /// TODO: implement pagination
   Future<List<Recording>> getRecordings({int startAfter}) async {
+    print('getRecordings: $startAfter');
+
     List<Map<String, Object>> rawData = await _database.query(
       Tables.recordings,
-      limit: 32,
+      limit: PAGINATION_LIMIT,
       orderBy: '${Columns.re_started_recording} DESC',
+      where: (startAfter != null) ? '${Columns.re_started_recording} < $startAfter' : null,
     );
     List<Recording> recordings =
         rawData.map((e) => Recording.fromDatabase(e)).toList();
