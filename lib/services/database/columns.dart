@@ -1,5 +1,6 @@
 part of database_service;
 
+/// Column names of sqlite database
 class Columns {
   /// Recordings table
   static const String re_id = 'id';

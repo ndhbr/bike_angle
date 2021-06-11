@@ -192,31 +192,39 @@ class BikeAngle {
 
   /// Starts recording of the bike angle stream (only working, if the stream is active)
   Future<void> startRecording() async {
-    _recordingId = await _database.startRecording();
-    _batch = _database.batch();
+    if (!isRecording()) {
+      _recordingId = await _database.startRecording();
+      _batch = _database.batch();
 
-    debugPrint('[BIKE_ANGLE] Started recording with ID: $_recordingId');
-  }
-
-  Future<void> stopRecording() async {
-    if (_batch != null) {
-      await _batch.commit(noResult: true);
+      debugPrint('[BIKE_ANGLE] Started recording with ID: $_recordingId');
     }
-    await _database.stopRecording(_recordingId);
-
-    debugPrint('[BIKE_ANGLE] Stopped recording with ID: $_recordingId');
-
-    _recordingId = null;
   }
 
+  /// Stop running recording (if recording is running)
+  Future<void> stopRecording() async {
+    if (isRecording()) {
+      if (_batch != null) {
+        await _batch.commit(noResult: true);
+      }
+      await _database.stopRecording(_recordingId);
+
+      debugPrint('[BIKE_ANGLE] Stopped recording with ID: $_recordingId');
+
+      _recordingId = null;
+    }
+  }
+
+  /// Check wether library is currently recording
   bool isRecording() {
     return _recordingId != null;
   }
 
+  /// Get stored recordings
   Future<List<Recording>> getRecordings({int startAfter}) async {
     return _database.getRecordings(startAfter: startAfter);
   }
 
+  /// Get recorded angles by recordingId
   Future<List<DeviceRotation>> getRecordedAngles(int recordingId) async {
     return _database.getRecordedAngles(recordingId);
   }
