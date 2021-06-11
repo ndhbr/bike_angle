@@ -99,8 +99,6 @@ class Controller {
 
   /// Retrieves a paginated list of recordings
   Future<List<Recording>> getRecordings({int startAfter}) async {
-    print('getRecordings: $startAfter');
-
     List<Map<String, Object>> rawData = await _database.query(
       Tables.recordings,
       limit: PAGINATION_LIMIT,
