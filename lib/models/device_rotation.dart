@@ -75,7 +75,7 @@ class DeviceRotation {
     double x = gyroData.x;
     double y = gyroData.y;
     double z = gyroData.z;
-
+    
     return DeviceRotation(
       DateTime.now().millisecondsSinceEpoch,
       x: x,
