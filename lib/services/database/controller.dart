@@ -12,6 +12,7 @@ part 'queries.dart';
 const DB_NAME = 'bike_angle_database.db';
 const PAGINATION_LIMIT = 10;
 
+/// SQLite database controller
 class Controller {
   /// Database instance
   Database _database;

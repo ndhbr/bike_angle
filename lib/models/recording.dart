@@ -13,6 +13,7 @@ class Recording {
     this.stoppedRecordingTimestamp,
   });
 
+  /// Constructs recording by database
   factory Recording.fromDatabase(Map<String, Object> data) {
     return Recording(
       id: data[Columns.re_id] ?? 0,

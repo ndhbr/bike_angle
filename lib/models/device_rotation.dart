@@ -84,6 +84,7 @@ class DeviceRotation {
     );
   }
 
+  /// Constructs device rotation by database angle
   factory DeviceRotation.fromDatabase(Map<String, Object> data) {
     double x = 0.0;
     double y = 0.0;

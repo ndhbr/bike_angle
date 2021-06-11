@@ -1,6 +1,7 @@
 part of database_service;
 
 class Queries {
+  /// Create recordings table
   static final String createRecordingsTable = '''
     -- Recordings tables
      CREATE TABLE ${Tables.recordings}(
@@ -11,6 +12,7 @@ class Queries {
     );
   ''';
 
+  /// Create device rotations table
   static final String createDeviceRotationsTable = '''
     -- Create device rotations table
     CREATE TABLE ${Tables.deviceRotations}(
@@ -24,6 +26,7 @@ class Queries {
     );
   ''';
 
+  /// Drop recordings and device rotations table
   static final String dropDb = '''
     -- Drop both tables
     DROP TABLE ${Tables.recordings};
