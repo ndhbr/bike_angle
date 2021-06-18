@@ -122,7 +122,7 @@ class BikeAngle {
         },
       );
 
-      return _interpolatedGyroscopeStream.stream;
+      return _interpolatedGyroscopeStream.stream.asBroadcastStream();
     });
   }
 
