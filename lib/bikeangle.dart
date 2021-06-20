@@ -102,21 +102,26 @@ class BikeAngle {
           _interpolatedGyroscopeStream.add(b);
 
           int timeDifference = c.capturedAt - b.capturedAt;
-          int part = (timeDifference / 6).round();
-          int i;
-          double accPart;
 
-          for (i = 1; i <= 2; i++) {
-            await Future.delayed(Duration(milliseconds: part * i));
+          if (timeDifference > 0) {
+            int part = (timeDifference / 6).round();
+            int i;
+            double accPart;
 
-            accPart = (part / timeDifference) * i;
+            for (i = 1; i <= 2; i++) {
+              await Future.delayed(Duration(milliseconds: part * i));
 
-            _interpolatedGyroscopeStream.add(DeviceRotation(
-              b.capturedAt + part,
-              x: b.x + ((c.x - b.x) * accPart),
-              y: b.y + ((c.y - b.y) * accPart),
-              z: b.z + ((c.z - b.z) * accPart),
-            ));
+              accPart = (part / timeDifference) * i;
+
+              _interpolatedGyroscopeStream.add(
+                DeviceRotation(
+                  b.capturedAt + part,
+                  x: b.x + ((c.x - b.x) * accPart),
+                  y: b.y + ((c.y - b.y) * accPart),
+                  z: b.z + ((c.z - b.z) * accPart),
+                ),
+              );
+            }
           }
         },
       );

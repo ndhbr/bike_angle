@@ -32,9 +32,9 @@ class DeviceRotation {
 
   /// Generates device rotation object by GyroData
   factory DeviceRotation.fromGyroData(GyroData gyroData) {
-    double x = gyroData.x;
-    double y = gyroData.y;
-    double z = gyroData.z;
+    double x = gyroData?.x ?? 0.0;
+    double y = gyroData?.y ?? 0.0;
+    double z = gyroData?.z ?? 0.0;
     
     return DeviceRotation(
       DateTime.now().millisecondsSinceEpoch,
@@ -70,9 +70,9 @@ class DeviceRotation {
 
     return DeviceRotation(
       data[Columns.dr_captured_at] ?? 0,
-      x: x,
-      y: y,
-      z: z,
+      x: x ?? 0.0,
+      y: y ?? 0.0,
+      z: z ?? 0.0,
     );
   }
 
