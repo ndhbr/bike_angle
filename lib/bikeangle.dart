@@ -99,7 +99,6 @@ class BikeAngle {
             );
           }
 
-          // return b;
           _interpolatedGyroscopeStream.add(b);
 
           int timeDifference = c.capturedAt - b.capturedAt;
@@ -125,57 +124,6 @@ class BikeAngle {
       return _interpolatedGyroscopeStream.stream.asBroadcastStream();
     });
   }
-
-  // /// Starts and returns a bike angle stream with device rotations
-  // Future<Stream<DeviceRotation>> getBikeAngle() async {
-  //   _interpolatedGyroscopeStream = StreamController<DeviceRotation>();
-
-  //   _lastValues = [];
-
-  //   _gyroscopeStream = accelerometerEvents
-  //       .map((event) => GyroData.fromAccelerometerEvent(event))
-  //       .map((event) => DeviceRotation.fromGyroData(event))
-  //       .listen(
-  //     (event) async {
-  //       _lastValues.add(event);
-
-  //       if (_lastValues.length > 3) {
-  //         _lastValues.removeAt(0);
-  //       }
-
-  //       // interpolation
-  //       if (_lastValues.length == 3) {
-  //         // median
-  //         double medianPitch =
-  //             _median(_lastValues.map((e) => e.pitch).toList());
-  //         double medianRoll = _median(_lastValues.map((e) => e.roll).toList());
-
-  //         _lastValues[1] = DeviceRotation(
-  //             medianPitch, medianRoll, _lastValues[1].capturedAt);
-
-  //         // average
-  //         double avgPitch = _average(_lastValues.map((e) => e.pitch).toList());
-  //         double avgRoll = _average(_lastValues.map((e) => e.roll).toList());
-
-  //         _lastValues[1] =
-  //             DeviceRotation(avgPitch, avgRoll, _lastValues[1].capturedAt, x: _lastValues[1].x, y: _lastValues[1].y, z: _lastValues[1].z);
-
-  //         // send
-  //         _interpolatedGyroscopeStream.add(_lastValues[1]);
-
-  //         if (_batch != null && _recordingId != null && _recordingId > 0) {
-  //           await _database.insertDeviceRotation(
-  //             _recordingId,
-  //             _lastValues[1],
-  //             batch: _batch,
-  //           );
-  //         }
-  //       }
-  //     },
-  //   );
-
-  //   return _interpolatedGyroscopeStream.stream;
-  // }
 
   /// Stops the started bike angle stream
   Future<void> stopBikeAngleStream() async {

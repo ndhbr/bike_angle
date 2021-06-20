@@ -11,46 +11,6 @@ class DeviceRotation {
 
   DeviceRotation(this.capturedAt, {this.x, this.y, this.z});
 
-  /// Calculates exact bike angle
-  // double get bikeAngle {
-  //   double rollRad = roll * pi / 180;
-  //   double pitchRad = roll * pi / 180;
-  //   double tilt = sqrt(pow(rollRad, 2) + pow(pitchRad, 2));
-
-  //   return tilt * 180 / pi;
-  // }
-
-  // double get bikeAngle5 {
-  //   double rollRad = roll * pi / 180;
-  //   double pitchRad = roll * pi / 180;
-  //   double tilt = atan(sqrt(pow(tan(rollRad), 2) + pow(tan(pitchRad), 2)));
-
-  //   return tilt * 180 / pi;
-  // }
-
-  // double get bikeAngle2 {
-  //   double inner = x / sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
-  //   double tilt = atan(inner);
-  //   return tilt * 180 / pi;
-  // }
-
-  // double get bikeAngle3 {
-  //   double zaehler = sqrt(pow(x, 2) + pow(y, 2));
-  //   double nenner = z;
-  //   double tilt = atan(zaehler / nenner);
-
-  //   // double roll = atan(x / (sqrt(pow(y, 2) + pow(z, 2))));
-  //   // double pitch = atan(y / (sqrt(pow(x, 2) + pow(z, 2))));
-
-  //   return tilt * 180 / pi;
-  // }
-
-  // double get bikeAngle4 {
-  //   double tilt = tan(-x / (sqrt(pow(y, 2) + pow(x, 2))));
-
-  //   return tilt * 180 / pi;
-  // }
-
   /// Calculates exact bike angle in rad
   double get bikeAngleRad {
     double tilt = atan(x / y);
